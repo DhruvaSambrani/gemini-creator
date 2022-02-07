@@ -1,0 +1,19 @@
+#! /bin/bash
+
+myf() {
+	out=$(basename $(dirname $1)).gmi
+	echo $1
+	curl -sL $1 | 
+		sed -E "s/(.*<contentthing>|<\/contentthing>.*)//g" |
+		sed -E "s/<blockquote> <p>/<blockquote>/g" |
+		sed -E "s/<\/p> <\/blockquote>/<\/blockquote>/g" |
+		$HOME/go/bin/html2gmi -met -l 1 -o $HOME/public_gemini/$out
+}
+
+export -f myf
+
+rm -rf $HOME/public_gemini/*
+
+curl -s https://dhruvasambrani.github.io/blog/sitemap.xml -- | grep .*/posts/2.* | sed -E "s/([ ]*<\/*loc>)//g" | xargs -I{} -- bash -c 'myf "{}"'
+
+python3 makeindex.py
